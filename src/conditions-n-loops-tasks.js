@@ -473,27 +473,61 @@ function rotateMatrix(matrix) {
  *  [2, 9, 5, 9]    => [2, 5, 9, 9]
  *  [-2, 9, 5, -3]  => [-3, -2, 5, 9]
  */
-function sortByAsc(arr) {
-  const linkArr = arr;
-  const arrLength = arr.length;
 
-  for (
-    let gap = Math.floor(arrLength / 2);
-    gap > 0;
-    gap = Math.floor(gap / 2)
-  ) {
-    for (let i = gap; i < arrLength; i += 1) {
-      let temp = i;
-      for (let j = i - gap; j >= 0; j -= gap) {
-        if (linkArr[temp] < linkArr[j]) {
-          [linkArr[temp], linkArr[j]] = [linkArr[j], linkArr[temp]];
-          temp = j;
-        }
-      }
+function merge(ar1, ar2, source) {
+  let i = 0;
+  let j = 0;
+  let lastIndex = 0;
+  const result = source;
+
+  while (i < ar1.length && j < ar2.length) {
+    if (ar1[i] < ar2[j]) {
+      result[lastIndex] = ar1[i];
+      i += 1;
+    } else {
+      result[lastIndex] = ar2[j];
+      j += 1;
     }
+    lastIndex += 1;
   }
 
-  return arr;
+  while (i < ar1.length) {
+    result[lastIndex] = ar1[i];
+    lastIndex += 1;
+    i += 1;
+  }
+
+  while (j < ar2.length) {
+    result[lastIndex] = ar2[j];
+    lastIndex += 1;
+    j += 1;
+  }
+
+  return result;
+}
+
+function sortByAsc(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  }
+
+  const mid = Math.floor(arr.length / 2);
+
+  const firstHalfArray = [];
+  for (let i = 0; i < mid; i += 1) {
+    firstHalfArray[i] = arr[i];
+  }
+
+  const sortedFirstHalfArray = sortByAsc(firstHalfArray);
+
+  const secondHalfArray = [];
+  for (let i = mid; i < arr.length; i += 1) {
+    secondHalfArray[i - mid] = arr[i];
+  }
+
+  const sortedSecondHalfArray = sortByAsc(secondHalfArray);
+
+  return merge(sortedFirstHalfArray, sortedSecondHalfArray, arr);
 }
 
 /**
@@ -514,24 +548,45 @@ function sortByAsc(arr) {
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
 function shuffleChar(str, iterations) {
-  let oddStr = '';
-  let evenStr = '';
-  let result = str;
+  const memory = new Set();
+  memory.add(str);
 
-  for (let j = 0; j < iterations; j += 1) {
-    for (let i = 0; i < result.length; i += 1) {
-      if (i % 2) {
-        oddStr += result[i];
-      } else {
-        evenStr += result[i];
-      }
-    }
-    result = evenStr + oddStr;
-    oddStr = '';
-    evenStr = '';
+  let currentStr = str;
+  const { length } = str;
+  let modificator = length;
+
+  if (length % 2 === 0) {
+    modificator -= 1;
   }
 
-  return result;
+  for (let i = 0; i < iterations; i += 1) {
+    let oddStr = '';
+    let [evenStr] = str;
+
+    for (let j = 1; j < modificator; j += 1) {
+      if (j % 2) {
+        oddStr = `${oddStr}${currentStr[j]}`;
+      } else {
+        evenStr = `${evenStr}${currentStr[j]}`;
+      }
+    }
+
+    currentStr = `${evenStr}${oddStr}`;
+    if (length % 2 === 0) {
+      currentStr = `${currentStr}${str[modificator]}`;
+    }
+
+    if (memory.has(currentStr)) {
+      break;
+    }
+
+    memory.add(currentStr);
+  }
+
+  const finalIteration = iterations % memory.size;
+  currentStr = [...memory][finalIteration];
+
+  return currentStr;
 }
 
 /**
